@@ -323,14 +323,16 @@ class MisReportKpiExpression(models.Model):
         if "." in value:
             kpi_name, subkpi_name = value.split(".", 1)
             name_search_domain = (
-                (Domain("kpi_id.name", "=", kpi_name) & Domain("subkpi_id.name", operator, subkpi_name))
+                (
+                    Domain("kpi_id.name", "=", kpi_name)
+                    & Domain("subkpi_id.name", operator, subkpi_name)
+                )
                 | Domain("kpi_id.description", operator, value)
                 | Domain("subkpi_id.description", operator, value)
             )
         else:
-            name_search_domain = (
-                Domain("kpi_id.name", operator, value)
-                | Domain("kpi_id.description", operator, value)
+            name_search_domain = Domain("kpi_id.name", operator, value) | Domain(
+                "kpi_id.description", operator, value
             )
         return name_search_domain
 
@@ -438,7 +440,7 @@ class MisReport(models.Model):
             ("field_id.name", "=", "date"),
             ("field_id.name", "=", "company_id"),
         ],
-        default=_default_move_lines_source,
+        default=lambda self: self._default_move_lines_source(),
         required=True,
         ondelete="cascade",
         help="A 'move line like' model, ie having at least debit, credit, "
@@ -604,7 +606,7 @@ class MisReport(models.Model):
                         v = data[0][field_name]
                     except KeyError:
                         _logger.error(
-                            "field %s not found in read_group " "for %s; not summable?",
+                            "field %s not found in read_group for %s; not summable?",
                             field_name,
                             model._name,
                         )
